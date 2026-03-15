@@ -10,6 +10,10 @@
         XDG_SESSION_TYPE "wayland"
     }
 
+    cursor {
+        xcursor-theme "capitaine-cursors"
+    }
+
     debug {
         // Allows notification actions and window activation from Noctalia.
         honor-xdg-activation-with-invalid-serial
