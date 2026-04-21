@@ -6,7 +6,7 @@ binds {
     // ─── noctalia-shell keybinds ───
     // https://docs.noctalia.dev/getting-started/keybinds/
 
-    Shift+ESCAPE                     { show-hotkey-overlay; }
+    Mod+Shift+ESCAPE                     { show-hotkey-overlay; }
 
     // ─── Applications ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
