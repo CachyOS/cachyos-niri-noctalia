@@ -18,7 +18,7 @@ binds {
     Mod+ALT+L                           hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
     Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
 
-    // Please choose the text editor of your choice.
+    // Please set the text editor of your choice.
     Mod+X                               hotkey-overlay-title="Open Text Editor: Micro" { spawn "micro"; }
 
     // Please choose your own file manager.
