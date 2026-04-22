@@ -19,7 +19,7 @@ binds {
     Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
 
     // Please set the text editor of your choice.
-    Mod+X                               hotkey-overlay-title="Open Text Editor: Micro" { spawn "micro"; }
+   // Mod+X                               hotkey-overlay-title="Open Text Editor: Neovim" { spawn "alacritty -e nvim"; }
 
     // Please choose your own file manager.
     Mod+E                               hotkey-overlay-title="File Manager: Nautilus" { spawn "nautilus"; }
