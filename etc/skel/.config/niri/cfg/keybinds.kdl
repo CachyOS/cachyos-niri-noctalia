@@ -10,9 +10,9 @@ binds {
 
     // ─── Applications ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
-    Mod+Shift+Return                    hotkey-overlay-title="Open Wallpaper Selector: noctalia wallpaper toggle { spawn-sh "qs -c noctalia-shell ipc call wallpaper toggle"; }
-    Mod+S                               hotkey-overlay-title="Open Control Center: noctalia controlCenter { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
-    Mod+Shift+S                         hotkey-overlay-title="Open Settings: noctalia settings { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
+    Mod+Shift+Return                    hotkey-overlay-title="Open Wallpaper Selector: noctalia wallpaper toggle" { spawn-sh "qs -c noctalia-shell ipc call wallpaper toggle"; }
+    Mod+S                               hotkey-overlay-title="Open Control Center: noctalia controlCenter" { spawn-sh "qs -c noctalia-shell ipc call controlCenter toggle"; }
+    Mod+Shift+S                         hotkey-overlay-title="Open Settings: noctalia settings" { spawn-sh "qs -c noctalia-shell ipc call settings toggle"; }
     Mod+CTRL+Return                     hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
     Mod+B                               hotkey-overlay-title="Open Browser: firefox" { spawn "firefox"; }
     Mod+ALT+L                           hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
