@@ -53,11 +53,14 @@ binds {
     Mod+CTRL+Down                       { move-window-down; }
     Mod+CTRL+J                          { move-window-down; }
 
+    Mod+ALT+Left                        { consume-or-expel-left; }
+    Mod+Alt+Right                       { consume-or-expel-rigth; }                
+
     Mod+Home                            { focus-column-first; }
     Mod+End                             { focus-column-last; }
     Mod+CTRL+Home                       { move-column-to-first; }
     Mod+CTRL+End                        { move-column-to-last; }
-
+}
     Mod+Shift+Left                      { focus-monitor-left; }
     Mod+Shift+Right                     { focus-monitor-right; }
     Mod+Shift+UP                        { focus-monitor-up; }
