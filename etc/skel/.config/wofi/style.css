@@ -1,0 +1,82 @@
+/* Occult Umbral theme - matches noctalia-shell default colorscheme */
+window {
+    margin: 0;
+    border: 2px solid #3a3a4a;
+    border-radius: 12px;
+    background-color: #0a0a12;
+    font-family: "Adwaita Sans", sans-serif;
+    font-size: 14px;
+}
+
+#input {
+    margin: 8px;
+    padding: 8px 12px;
+    border: 1px solid #3a3a4a;
+    border-radius: 8px;
+    background-color: #14141e;
+    color: #e4ded2;
+    font-size: 14px;
+}
+
+#input placeholder {
+    color: #3a3a4a;
+}
+
+#inner-box {
+    margin: 4px 8px 8px 8px;
+    border: none;
+}
+
+#outer-box {
+    margin: 0;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0;
+    border: none;
+}
+
+#text {
+    margin: 4px 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #e4ded2;
+    background-color: transparent;
+}
+
+#entry {
+    padding: 2px;
+    border-radius: 6px;
+    background-color: transparent;
+}
+
+#entry:selected {
+    background-color: #8b2e2e;
+}
+
+#entry:selected #text {
+    color: #f2eadf;
+    font-weight: bold;
+}
+
+#entry:hover {
+    background-color: #a83a3a;
+}
+
+#entry:hover #text {
+    color: #e4ded2;
+}
+
+/* Preview image styling */
+#text preview {
+    color: #8baa82;
+    font-size: 12px;
+}
+
+/* Match label (for clipboard type badges) */
+label {
+    color: #9a7398;
+    font-size: 11px;
+}

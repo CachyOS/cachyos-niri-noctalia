@@ -157,4 +157,7 @@ binds {
     CTRL+ALT+Delete                     { quit; } // Also quits Niri
     Mod+Shift+P                         { power-off-monitors; } // Turn off screens (useful for OLED or privacy)
     Mod+O                               repeat=false { toggle-overview; }
+
+    // ─── Clipboard History ───
+    Mod+V                               hotkey-overlay-title="Clipboard History: cliphist" { spawn-sh "${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/clipboard-picker.sh"; }
 }

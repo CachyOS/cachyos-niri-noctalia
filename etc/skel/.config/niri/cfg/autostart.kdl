@@ -2,3 +2,8 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
     spawn-sh-at-startup "qs -c noctalia-shell"
+
+    // ─── Clipboard History (cliphist) ───
+    // Requires: cliphist, wofi, imagemagick, coreutils, file
+    spawn-sh-at-startup "wl-paste --type text --watch cliphist store"
+    spawn-sh-at-startup "wl-paste --type image --watch cliphist store"
