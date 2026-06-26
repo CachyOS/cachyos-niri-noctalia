@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::collections::HashMap;
 use std::process::{Command, Stdio};
 use std::io::Write;
 use std::thread;
@@ -63,8 +64,7 @@ fn run_cmd_stdin(cmd: &str, args: &[&str], input: &[u8]) -> String {
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 
-fn classify_content(data: &[u8]) -> (String, String) {
-    // Check MIME type using file command
+fn classify_content(data: &[u8]) -> String {
     let mut tmp = NamedTempFile::new().unwrap();
     tmp.write_all(data).unwrap();
     let path = tmp.path().to_str().unwrap();
@@ -77,26 +77,25 @@ fn classify_content(data: &[u8]) -> (String, String) {
             let dims = run_cmd("identify", &["-format", "%wx%h", path]);
             let dims = dims.trim();
             if dims.is_empty() {
-                ("[IMG]".to_string(), mime)
+                "[IMG]".to_string()
             } else {
-                (format!("[IMG {}]", dims), mime)
+                format!("[IMG {}]", dims)
             }
         }
-        m if m.starts_with("video/") => ("[VIDEO]".to_string(), mime),
-        m if m.starts_with("audio/") => ("[AUDIO]".to_string(), mime),
+        m if m.starts_with("video/") => "[VIDEO]".to_string(),
+        m if m.starts_with("audio/") => "[AUDIO]".to_string(),
         "application/pdf" => {
             let size = run_cmd("du", &["-h", path]);
             let size = size.split_whitespace().next().unwrap_or("?");
-            (format!("[PDF {}]", size), mime)
+            format!("[PDF {}]", size)
         }
         m if m.starts_with("text/") || m == "application/json" || m == "application/xml" => {
             let preview = String::from_utf8_lossy(data);
             let preview: String = preview.chars().take(80).collect();
             let preview = preview.replace('\n', " ");
-            (format!("  ─ {}", preview), mime)
+            format!("  ─ {}", preview)
         }
         _ => {
-            // Check if it's a file path
             let content = String::from_utf8_lossy(data).to_string();
             if std::path::Path::new(content.trim()).exists() {
                 let fname = std::path::Path::new(content.trim())
@@ -113,11 +112,11 @@ fn classify_content(data: &[u8]) -> (String, String) {
                     m if m.starts_with("audio/") => "FILE:aud",
                     _ => "FILE",
                 };
-                (format!("[{}] {} ({})", tag, fname, fsize), fmime.to_string())
+                format!("[{}] {} ({})", tag, fname, fsize)
             } else {
                 let preview: String = content.chars().take(60).collect();
                 let preview = preview.replace('\n', " ");
-                (format!("  ─ {}", preview), mime)
+                format!("  ─ {}", preview)
             }
         }
     }
@@ -126,7 +125,6 @@ fn classify_content(data: &[u8]) -> (String, String) {
 fn cmd_store() {
     eprintln!("niri-clipboard: starting clipboard store daemon");
 
-    // Start text monitor
     let mut text_child = Command::new("wl-paste")
         .args(["--type", "text", "--watch", "cliphist", "store"])
         .stdout(Stdio::null())
@@ -134,7 +132,6 @@ fn cmd_store() {
         .spawn()
         .expect("Failed to start wl-paste text monitor");
 
-    // Start image monitor
     let mut image_child = Command::new("wl-paste")
         .args(["--type", "image", "--watch", "cliphist", "store"])
         .stdout(Stdio::null())
@@ -145,7 +142,6 @@ fn cmd_store() {
     eprintln!("niri-clipboard: daemon running (text pid={}, image pid={})",
               text_child.id(), image_child.id());
 
-    // Wait for either to exit
     loop {
         if let Ok(Some(status)) = text_child.try_wait() {
             eprintln!("niri-clipboard: text monitor exited: {}", status);
@@ -158,31 +154,39 @@ fn cmd_store() {
         thread::sleep(Duration::from_millis(500));
     }
 
-    // Clean up
     text_child.kill().ok();
     image_child.kill().ok();
 }
 
 fn cmd_pick() {
-    // Get clipboard history
     let list = run_cmd("cliphist", &["list"]);
-    let items: Vec<&str> = list.lines().filter(|l| !l.trim().is_empty()).collect();
+    let items: Vec<String> = list.lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| l.to_string())
+        .collect();
 
     if items.is_empty() {
         eprintln!("niri-clipboard: clipboard history is empty");
         return;
     }
 
-    // Build enhanced list with type indicators
+    // Build enhanced list for wofi display AND a map back to original cliphist keys
+    // Key: wofi display line -> Value: original cliphist list line (the full key for decode)
+    let mut key_map: HashMap<String, String> = HashMap::new();
     let mut enhanced = String::new();
+
     for item in &items {
-        let decoded = run_cmd_stdin("cliphist", &["decode"], item.trim().as_bytes());
-        let (tag, _) = classify_content(decoded.as_bytes());
-        if tag.starts_with("  ─") {
-            enhanced.push_str(&format!("{}{}", item, tag));
+        let decoded = run_cmd_stdin("cliphist", &["decode"], item.as_bytes());
+        let tag = classify_content(decoded.as_bytes());
+
+        let display_line = if tag.starts_with("  ─") {
+            format!("{}{}", item, tag)
         } else {
-            enhanced.push_str(&format!("{} {}", tag.trim(), item));
-        }
+            format!("{} {}", tag.trim(), item)
+        };
+
+        key_map.insert(display_line.clone(), item.clone());
+        enhanced.push_str(&display_line);
         enhanced.push('\n');
     }
 
@@ -215,33 +219,47 @@ fn cmd_pick() {
         return;
     }
 
-    // Extract the original cliphist key
-    let original_key = if selected.starts_with('[') {
-        // Has type prefix like [IMG] or [FILE:vid]
-        selected.splitn(2, "] ").nth(1).unwrap_or(&selected)
-    } else {
-        // No prefix, strip preview
-        selected.split("  ─").next().unwrap_or(&selected)
+    // Look up the original cliphist key from our map
+    let original_key = match key_map.get(&selected) {
+        Some(key) => key.as_str(),
+        None => {
+            eprintln!("niri-clipboard: could not find original key for selection");
+            return;
+        }
     };
 
     // Decode and copy to clipboard
     let decoded = run_cmd_stdin("cliphist", &["decode"], original_key.as_bytes());
+
+    // Write decoded content to temp file for reliable binary copy
     let mut clip_file = NamedTempFile::new().unwrap();
     clip_file.write_all(decoded.as_bytes()).unwrap();
+    clip_file.flush().unwrap();
     let clip_path = clip_file.path().to_str().unwrap();
 
-    // Copy to clipboard
-    Command::new("wl-copy")
-        .args(["--type", "text/plain"])
-        .stdin(std::fs::File::open(clip_path).unwrap())
-        .status()
-        .expect("Failed to run wl-copy");
+    // Copy to clipboard via file (more reliable than pipe for binary content)
+    let copy_status = Command::new("sh")
+        .args(["-c", &format!("cat '{}' | wl-copy", clip_path)])
+        .status();
 
-    // Auto-paste: wait for wofi to fully close, then simulate Ctrl+Shift+V
-    thread::sleep(Duration::from_millis(800));
+    match copy_status {
+        Ok(s) if s.success() => {
+            eprintln!("niri-clipboard: copied to clipboard");
+        }
+        Ok(s) => {
+            eprintln!("niri-clipboard: wl-copy exited with {}", s);
+            return;
+        }
+        Err(e) => {
+            eprintln!("niri-clipboard: wl-copy failed: {}", e);
+            return;
+        }
+    }
 
+    // Auto-paste: -s sleeps AFTER connecting to Wayland but BEFORE sending keys,
+    // giving wofi time to fully close and focus to return to the previous window.
     let wtype_status = Command::new("wtype")
-        .args(["-M", "ctrl", "-M", "shift", "v"])
+        .args(["-s", "800", "-M", "ctrl", "-M", "shift", "v"])
         .status();
 
     match wtype_status {
