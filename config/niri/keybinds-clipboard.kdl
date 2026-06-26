@@ -1,0 +1,3 @@
+// ─── Clipboard History ───
+// Add this to your keybinds.kdl:
+// Mod+V { spawn "niri-clipboard" "pick"; }

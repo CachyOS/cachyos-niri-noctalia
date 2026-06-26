@@ -1,0 +1,4 @@
+// ─── Clipboard History (niri-clipboard) ───
+// Auto-starts the clipboard store daemon
+// Keybind: Super+V opens clipboard history picker
+spawn-sh-at-startup "niri-clipboard store"

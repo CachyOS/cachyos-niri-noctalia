@@ -69,13 +69,6 @@ window {
     color: #e4ded2;
 }
 
-/* Preview image styling */
-#text preview {
-    color: #8baa82;
-    font-size: 12px;
-}
-
-/* Match label (for clipboard type badges) */
 label {
     color: #9a7398;
     font-size: 11px;

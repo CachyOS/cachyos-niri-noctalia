@@ -1,12 +1,53 @@
-# CachyOS Niri Noctalia Settings
+# niri-clipboard
 
-**Niri** is a scrollable tiling Wayland compositor that emphasizes simplicity and fluid window management. It uses a continuous grid layout, optimized for both keyboard and touchpad navigation.
+Clipboard history manager for Niri/Wayland with themed wofi picker.
 
-This repository contains configuration files for Niri and related tools in CachyOS. These settings are designed to provide a balanced default setup while allowing easy customization. Noctalia Shell is used as the default shell, providing a user-friendly interface and seamless integration with Niri.
+## Features
 
-Useful links:
+- **Super+V** opens clipboard history picker
+- Content type indicators: `[IMG 1920x1080]`, `[VIDEO]`, `[AUDIO]`, `[PDF]`, `[FILE]`
+- Text preview for copied text entries
+- File metadata display (name, size, MIME type)
+- **Occult Umbral** themed wofi styling matching noctalia-shell
+- Auto-paste via simulated Ctrl+Shift+V
 
-- https://github.com/niri-wm/niri
-- https://github.com/noctalia-dev/noctalia-shell
+## Dependencies
 
-Thank you for using CachyOS Niri Noctalia Settings.
+- `cliphist` - Wayland clipboard history storage
+- `wofi` - Application launcher/picker
+- `imagemagick` - Image dimension detection
+- `file` - MIME type detection
+- `wtype` - Wayland keyboard input simulation
+- `coreutils` - Basic utilities (du, basename)
+
+## Usage
+
+```bash
+# Start the clipboard store daemon (usually auto-started)
+niri-clipboard store
+
+# Open clipboard history picker
+niri-clipboard pick
+
+# List clipboard history
+niri-clipboard list
+
+# Wipe clipboard history
+niri-clipboard wipe
+```
+
+## Keybind
+
+Add to your `keybinds.kdl`:
+
+```
+Mod+V { spawn "niri-clipboard" "pick"; }
+```
+
+## Autostart
+
+Add to your `autostart.kdl`:
+
+```
+spawn-sh-at-startup "niri-clipboard store"
+```

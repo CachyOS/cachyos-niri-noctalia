@@ -1,0 +1,43 @@
+# Maintainer: CachyOS <admin@cachyos.org>
+
+pkgname=niri-clipboard
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Clipboard history manager for Niri/Wayland with themed wofi picker"
+arch=('x86_64')
+url="https://github.com/CachyOS/cachyos-niri-noctalia"
+license=('GPL-3.0-only')
+depends=('cliphist' 'wofi' 'imagemagick' 'file' 'coreutils' 'wtype')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    cd "$pkgname-$pkgver"
+    cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+    cd "$pkgname-$pkgver"
+    cargo build --frozen --release
+}
+
+check() {
+    cd "$pkgname-$pkgver"
+    cargo test --frozen
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+
+    # Install wofi style for noctalia theme
+    install -Dm644 "config/wofi/style.css" \
+        "$pkgdir/usr/share/$pkgname/wofi-style.css"
+
+    # Install niri config snippets
+    install -Dm644 "config/niri/autostart.kdl" \
+        "$pkgdir/usr/share/$pkgname/niri-autostart.kdl"
+    install -Dm644 "config/niri/keybinds-clipboard.kdl" \
+        "$pkgdir/usr/share/$pkgname/niri-keybinds.kdl"
+}

@@ -1,0 +1,15 @@
+[package]
+name = "niri-clipboard"
+version = "1.0.0"
+edition = "2021"
+description = "Clipboard history manager for Niri/Wayland with themed wofi picker"
+license = "GPL-3.0-only"
+authors = ["CachyOS"]
+
+[[bin]]
+name = "niri-clipboard"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+tempfile = "3"

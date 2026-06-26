@@ -159,5 +159,5 @@ binds {
     Mod+O                               repeat=false { toggle-overview; }
 
     // ─── Clipboard History ───
-    Mod+V                               hotkey-overlay-title="Clipboard History: cliphist" { spawn-sh "${XDG_CONFIG_HOME:-$HOME/.config}/niri/scripts/clipboard-picker.sh"; }
+    Mod+V                               hotkey-overlay-title="Clipboard History: niri-clipboard" { spawn "niri-clipboard" "pick"; }
 }
