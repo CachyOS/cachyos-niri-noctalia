@@ -95,5 +95,6 @@ echo "$ORIGINAL_KEY" | cliphist decode > "$CLIP_FILE" 2>/dev/null
 cat "$CLIP_FILE" | wl-copy
 
 # Auto-paste: -s sleeps AFTER connecting to Wayland but BEFORE sending keys,
-# giving wofi time to fully close and focus to return to the previous window
-wtype -s 800 -M ctrl v
+# giving wofi time to fully close and focus to return to the previous window.
+# Ctrl+Shift+V works in terminals (alacritty, etc.) - standard paste shortcut.
+wtype -s 800 -M ctrl -M shift v
