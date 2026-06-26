@@ -93,3 +93,7 @@ fi
 
 # Decode and copy to clipboard
 echo "$ORIGINAL_KEY" | cliphist decode | wl-copy
+
+# Auto-paste: simulate Ctrl+V after small delay
+sleep 0.1
+wtype -M ctrl v
