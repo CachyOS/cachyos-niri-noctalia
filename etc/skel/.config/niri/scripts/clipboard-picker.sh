@@ -1,7 +1,7 @@
 #!/bin/bash
 # Clipboard history picker with file/image preview support
 # Uses cliphist + wofi with Occult Umbral theme
-# Keybind: Super+V
+# Super+V opens picker, Enter auto-pastes into focused area
 
 TMPDIR="${XDG_RUNTIME_DIR:-/tmp}/cliphist-previews"
 mkdir -p "$TMPDIR"
@@ -18,7 +18,6 @@ ITEMS=$(cliphist list)
 # Enhance entries with type indicators
 ENHANCED=""
 while IFS= read -r item; do
-    # Save decoded content to temp file for safe binary detection
     TMPFILE="$TMPDIR/clipitem_$(echo "$item" | md5sum | cut -d' ' -f1)"
     echo "$item" | cliphist decode > "$TMPFILE" 2>/dev/null
 
@@ -48,7 +47,6 @@ while IFS= read -r item; do
             ENHANCED+="${item}  ─ ${PREVIEW}"$'\n'
             ;;
         *)
-            # Check if it's a file path
             CONTENT=$(cat "$TMPFILE" 2>/dev/null)
             if [ -f "$CONTENT" ]; then
                 FNAME=$(basename "$CONTENT")
@@ -68,9 +66,7 @@ while IFS= read -r item; do
     esac
 done <<< "$ITEMS"
 
-# Remove empty lines
 ENHANCED=$(echo "$ENHANCED" | sed '/^[[:space:]]*$/d')
-
 [ -z "$ENHANCED" ] && exit 0
 
 # Show in wofi
@@ -91,9 +87,13 @@ else
     ORIGINAL_KEY=$(echo "$SELECTED" | sed 's/  ─ .*//')
 fi
 
-# Decode and copy to clipboard
-echo "$ORIGINAL_KEY" | cliphist decode | wl-copy
+# Decode content to a temp file first
+CLIP_FILE="$TMPDIR/clip_output_$(date +%s%N)"
+echo "$ORIGINAL_KEY" | cliphist decode > "$CLIP_FILE" 2>/dev/null
 
-# Auto-paste: simulate Ctrl+V after small delay
-sleep 0.1
-wtype -M ctrl v
+# Copy to clipboard
+cat "$CLIP_FILE" | wl-copy
+
+# Auto-paste: -s sleeps AFTER connecting to Wayland but BEFORE sending keys,
+# giving wofi time to fully close and focus to return to the previous window
+wtype -s 800 -M ctrl v
