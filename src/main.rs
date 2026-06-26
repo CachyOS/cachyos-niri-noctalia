@@ -42,7 +42,6 @@ fn run_cmd(cmd: &str, args: &[&str]) -> String {
         .stderr(Stdio::piped())
         .output()
         .unwrap_or_else(|e| panic!("Failed to run {}: {}", cmd, e));
-
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 
@@ -54,21 +53,18 @@ fn run_cmd_stdin(cmd: &str, args: &[&str], input: &[u8]) -> String {
         .stderr(Stdio::piped())
         .spawn()
         .unwrap_or_else(|e| panic!("Failed to run {}: {}", cmd, e));
-
     if let Some(ref mut stdin) = child.stdin {
         stdin.write_all(input).ok();
     }
     drop(child.stdin.take());
-
     let output = child.wait_with_output().unwrap_or_else(|e| panic!("Failed to wait for {}: {}", cmd, e));
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 
-fn classify_content(data: &[u8]) -> String {
+fn classify_content(data: &[u8]) -> (String, String) {
     let mut tmp = NamedTempFile::new().unwrap();
     tmp.write_all(data).unwrap();
     let path = tmp.path().to_str().unwrap();
-
     let mime = run_cmd("file", &["--mime-type", "-b", path]);
     let mime = mime.trim().to_string();
 
@@ -76,47 +72,59 @@ fn classify_content(data: &[u8]) -> String {
         m if m.starts_with("image/") => {
             let dims = run_cmd("identify", &["-format", "%wx%h", path]);
             let dims = dims.trim();
-            if dims.is_empty() {
-                "[IMG]".to_string()
+            let size = run_cmd("du", &["-h", path]);
+            let size = size.split_whitespace().next().unwrap_or("?");
+            let label = if dims.is_empty() {
+                format!("Image ({})", size)
             } else {
-                format!("[IMG {}]", dims)
-            }
+                format!("Image {} ({})", dims, size)
+            };
+            (label, "img".to_string())
         }
-        m if m.starts_with("video/") => "[VIDEO]".to_string(),
-        m if m.starts_with("audio/") => "[AUDIO]".to_string(),
+        m if m.starts_with("video/") => {
+            let size = run_cmd("du", &["-h", path]);
+            let size = size.split_whitespace().next().unwrap_or("?");
+            (format!("Video ({})", size), "video".to_string())
+        }
+        m if m.starts_with("audio/") => {
+            let size = run_cmd("du", &["-h", path]);
+            let size = size.split_whitespace().next().unwrap_or("?");
+            (format!("Audio ({})", size), "audio".to_string())
+        }
         "application/pdf" => {
             let size = run_cmd("du", &["-h", path]);
             let size = size.split_whitespace().next().unwrap_or("?");
-            format!("[PDF {}]", size)
+            (format!("PDF Document ({})", size), "pdf".to_string())
         }
         m if m.starts_with("text/") || m == "application/json" || m == "application/xml" => {
             let preview = String::from_utf8_lossy(data);
-            let preview: String = preview.chars().take(80).collect();
-            let preview = preview.replace('\n', " ");
-            format!("  ─ {}", preview)
+            let preview: String = preview.chars().take(100).collect();
+            let preview = preview.replace('\n', " ").replace('\r', "");
+            (preview, "text".to_string())
         }
         _ => {
             let content = String::from_utf8_lossy(data).to_string();
-            if std::path::Path::new(content.trim()).exists() {
-                let fname = std::path::Path::new(content.trim())
+            let trimmed = content.trim().to_string();
+            if std::path::Path::new(&trimmed).exists() {
+                let fname = std::path::Path::new(&trimmed)
                     .file_name()
                     .map(|f| f.to_string_lossy().to_string())
                     .unwrap_or_else(|| "unknown".to_string());
-                let fsize = run_cmd("du", &["-h", content.trim()]);
+                let fsize = run_cmd("du", &["-h", &trimmed]);
                 let fsize = fsize.split_whitespace().next().unwrap_or("?");
-                let fmime = run_cmd("file", &["--mime-type", "-b", content.trim()]);
+                let fmime = run_cmd("file", &["--mime-type", "-b", &trimmed]);
                 let fmime = fmime.trim();
-                let tag = match fmime {
-                    m if m.starts_with("image/") => "FILE:img",
-                    m if m.starts_with("video/") => "FILE:vid",
-                    m if m.starts_with("audio/") => "FILE:aud",
-                    _ => "FILE",
+                let kind = match fmime {
+                    m if m.starts_with("image/") => "Image File",
+                    m if m.starts_with("video/") => "Video File",
+                    m if m.starts_with("audio/") => "Audio File",
+                    _ => "File",
                 };
-                format!("[{}] {} ({})", tag, fname, fsize)
+                (format!("{}: {} ({})", kind, fname, fsize), "file".to_string())
             } else {
-                let preview: String = content.chars().take(60).collect();
-                let preview = preview.replace('\n', " ");
-                format!("  ─ {}", preview)
+                let preview: String = content.chars().take(100).collect();
+                let preview = preview.replace('\n', " ").replace('\r', "");
+                (preview, "text".to_string())
             }
         }
     }
@@ -153,7 +161,6 @@ fn cmd_store() {
         }
         thread::sleep(Duration::from_millis(500));
     }
-
     text_child.kill().ok();
     image_child.kill().ok();
 }
@@ -170,19 +177,28 @@ fn cmd_pick() {
         return;
     }
 
-    // Build enhanced list for wofi display AND a map back to original cliphist keys
-    // Key: wofi display line -> Value: original cliphist list line (the full key for decode)
     let mut key_map: HashMap<String, String> = HashMap::new();
     let mut enhanced = String::new();
+    let total = items.len();
 
-    for item in &items {
+    for (idx, item) in items.iter().enumerate() {
         let decoded = run_cmd_stdin("cliphist", &["decode"], item.as_bytes());
-        let tag = classify_content(decoded.as_bytes());
+        let (label, kind) = classify_content(decoded.as_bytes());
 
-        let display_line = if tag.starts_with("  ─") {
-            format!("{}{}", item, tag)
-        } else {
-            format!("{} {}", tag.trim(), item)
+        let display_line = match kind.as_str() {
+            "img" => format!("  [Image]     {}", label),
+            "video" => format!("  [Video]     {}", label),
+            "audio" => format!("  [Audio]     {}", label),
+            "pdf" => format!("  [PDF]       {}", label),
+            "file" => format!("  [File]      {}", label),
+            _ => {
+                // Truncate long text for display
+                if label.len() > 72 {
+                    format!("  {}...", &label[..69])
+                } else {
+                    format!("  {}", label)
+                }
+            }
         };
 
         key_map.insert(display_line.clone(), item.clone());
@@ -195,9 +211,9 @@ fn cmd_pick() {
     let mut wofi = Command::new("wofi")
         .args([
             "--show", "dmenu",
-            "--prompt", "Clipboard History",
-            "--width", "600",
-            "--height", "400",
+            "--prompt", &format!("Clipboard ({} items)", total),
+            "--width", "620",
+            "--height", "420",
             "--style", &style_path,
         ])
         .stdin(Stdio::piped())
@@ -219,7 +235,6 @@ fn cmd_pick() {
         return;
     }
 
-    // Look up the original cliphist key from our map
     let original_key = match key_map.get(&selected) {
         Some(key) => key.as_str(),
         None => {
@@ -231,13 +246,11 @@ fn cmd_pick() {
     // Decode and copy to clipboard
     let decoded = run_cmd_stdin("cliphist", &["decode"], original_key.as_bytes());
 
-    // Write decoded content to temp file for reliable binary copy
     let mut clip_file = NamedTempFile::new().unwrap();
     clip_file.write_all(decoded.as_bytes()).unwrap();
     clip_file.flush().unwrap();
     let clip_path = clip_file.path().to_str().unwrap();
 
-    // Copy to clipboard via file (more reliable than pipe for binary content)
     let copy_status = Command::new("sh")
         .args(["-c", &format!("cat '{}' | wl-copy", clip_path)])
         .status();
@@ -256,21 +269,26 @@ fn cmd_pick() {
         }
     }
 
-    // Auto-paste: -s sleeps AFTER connecting to Wayland but BEFORE sending keys,
-    // giving wofi time to fully close and focus to return to the previous window.
-    let wtype_status = Command::new("wtype")
-        .args(["-s", "800", "-M", "ctrl", "-M", "shift", "v"])
+    // Auto-paste via wtype: use sh -c to inherit full Wayland environment
+    // -s 1000: sleep 1s AFTER connecting to Wayland but BEFORE sending keys
+    // This gives wofi time to fully close and focus to return
+    let wtype_result = Command::new("sh")
+        .args(["-c", &format!(
+            "sleep 0.3 && wtype -s 1000 -M ctrl -M shift v"
+        )])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status();
 
-    match wtype_status {
+    match wtype_result {
         Ok(s) if s.success() => {
-            eprintln!("niri-clipboard: pasted successfully");
+            eprintln!("niri-clipboard: auto-paste sent");
         }
         Ok(s) => {
             eprintln!("niri-clipboard: wtype exited with {}", s);
         }
         Err(e) => {
-            eprintln!("niri-clipboard: wtype failed: {}", e);
+            eprintln!("niri-clipboard: wtype failed (content is in clipboard, paste with Ctrl+Shift+V): {}", e);
         }
     }
 }
@@ -280,7 +298,6 @@ fn cmd_wipe() {
         .arg("wipe")
         .status()
         .expect("Failed to run cliphist wipe");
-
     if status.success() {
         eprintln!("niri-clipboard: clipboard history wiped");
     } else {
@@ -299,7 +316,6 @@ fn cmd_list() {
 
 fn main() {
     let cli = Cli::parse();
-
     match cli.command {
         Commands::Store => cmd_store(),
         Commands::Pick => cmd_pick(),
