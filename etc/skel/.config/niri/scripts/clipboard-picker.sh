@@ -87,12 +87,8 @@ else
     ORIGINAL_KEY=$(echo "$SELECTED" | sed 's/  ─ .*//')
 fi
 
-# Decode content to a temp file first
-CLIP_FILE="$TMPDIR/clip_output_$(date +%s%N)"
-echo "$ORIGINAL_KEY" | cliphist decode > "$CLIP_FILE" 2>/dev/null
-
-# Copy to clipboard
-cat "$CLIP_FILE" | wl-copy
+# Decode and copy to clipboard directly (avoid echo corruption of binary data)
+printf '%s' "$ORIGINAL_KEY" | cliphist decode | wl-copy --type text/plain
 
 # Auto-paste: -s sleeps AFTER connecting to Wayland but BEFORE sending keys,
 # giving wofi time to fully close and focus to return to the previous window.
