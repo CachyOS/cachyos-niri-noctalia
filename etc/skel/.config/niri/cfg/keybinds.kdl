@@ -1,10 +1,10 @@
 binds {
 
     // ────────────── Keybindings ──────────────
-    // https://github.com/YaLTeR/niri/wiki/Configuration:-Key-Bindings
+    // https://niri-wm.github.io/niri/Configuration%3A-Key-Bindings
 
-    // ─── noctalia-shell keybinds ───
-    // https://docs.noctalia.dev/getting-started/keybinds/
+    // ─── noctalia keybinds ───
+    // https://docs.noctalia.dev/noctalia/ipc/
 
     Mod+Shift+ESCAPE                     { show-hotkey-overlay; }
 
