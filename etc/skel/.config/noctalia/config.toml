@@ -1,2 +1,5 @@
 [shell]
 polkit_agent = true
+
+[wallpaper]
+directory = "/usr/share/wallpapers/cachyos-wallpapers"
