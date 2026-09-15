@@ -2,7 +2,7 @@
         gaps 16 // Gap between windows
         center-focused-column "never" // Don’t auto-center focused column
 
-        background-color "transparent" // <- needed for noctalia-shell to set wallpaper
+        background-color "transparent" // <- needed for noctalia to set wallpaper
 
         preset-column-widths {
             proportion 0.33333

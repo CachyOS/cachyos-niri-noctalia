@@ -1,10 +1,10 @@
 binds {
 
     // ────────────── Keybindings ──────────────
-    // https://github.com/YaLTeR/niri/wiki/Configuration:-Key-Bindings
+    // https://niri-wm.github.io/niri/Configuration%3A-Key-Bindings
 
-    // ─── noctalia-shell keybinds ───
-    // https://docs.noctalia.dev/getting-started/keybinds/
+    // ─── noctalia keybinds ───
+    // https://docs.noctalia.dev/noctalia/ipc/
 
     Mod+Shift+ESCAPE                     { show-hotkey-overlay; }
 
@@ -19,6 +19,7 @@ binds {
     Mod+CTRL+Return                     hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+ALT+L                           hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "noctalia msg session lock"; }
     Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "noctalia msg panel-toggle session"; }
+    Mod+V                               hotkey-overlay-title="Clipboard Menu: noctalia clipboard" { spawn-sh "noctalia msg panel-toggle clipboard"; }
 
     // Please set the text editor of your choice.
     // Mod+Shift+E                               hotkey-overlay-title="Open Text Editor: Zed" { spawn "zed"; }

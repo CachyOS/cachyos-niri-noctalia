@@ -1,5 +1,5 @@
 // ────────────── Input Configuration ──────────────
-// https://github.com/YaLTeR/niri/wiki/Configuration:-Input
+// https://niri-wm.github.io/niri/Configuration%3A-Input
 
 input {
     keyboard {
