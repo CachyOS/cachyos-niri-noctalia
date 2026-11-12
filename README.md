@@ -1,12 +1,36 @@
-# CachyOS Niri Noctalia Settings
+# cachyos-niri-settings
 
-**Niri** is a scrollable tiling Wayland compositor that emphasizes simplicity and fluid window management. It uses a continuous grid layout, optimized for both keyboard and touchpad navigation.
+[**Niri**](https://niri-wm.github.io/niri/) is a scrolling wayland compositor build on Smithay.
 
-This repository contains configuration files for Niri and related tools in CachyOS. These settings are designed to provide a balanced default setup while allowing easy customization. Noctalia Shell is used as the default shell, providing a user-friendly interface and seamless integration with Niri.
+This repository contains `Niri` specific settings, like `config.kdl` and `xdg-desktop-portal`.
 
-Useful links:
+Dependencies:
 
-- https://github.com/niri-wm/niri
-- https://github.com/noctalia-dev/noctalia-shell
+```Sh
+niri xdg-desktop-portal-gnome
+```
 
-Thank you for using CachyOS Niri Noctalia Settings.
+## Reposotiry tree
+
+### Path [`.config/niri/`](./etc/skel/.config/niri/):
+
+in [`config.kdl`](./etc/skel/.config/niri/) you can find all `includes` from directory [`cfg/`](./etc/skel/.config/niri/cfg/)
+
+### Path [`.config/niri/cfg/`](./etc/skel/.config/niri/cfg/)
+
+| config | purpose |
+| ------ | ------- |
+| [`animation.kdl`](./etc/skel/.config/niri/cfg/animation.kdl) | default animataions; beziers and springs       |
+| [`input.kdl`](./etc/skel/.config/niri/cfg/input.kdl) | libinput related settings; xbk layouts and etc |
+| [`keybinds.kdl`](./etc/skel/.config/niri/cfg/keybinds.kdl) | keybinds; like colomn focus, terminal spawn |
+| [`layout.kdl`](./etc/skel/.config/niri/cfg/layout.kdl) | layout related settings; how `Niri` behaves |
+| [`misc.kdl`](./etc/skel/.config/niri/cfg/misc.kdl) | ungrouped settings; blur, cursors, etc |
+| [`rules.kdl`](./etc/skel/.config/niri/cfg/rules.kdl) | window rules; like blur for noctalia |
+
+### Path [`.config/xdg-desktop-portal/`](./etc/skel/.config/xdg-desktop-portal/)
+
+In `niri-portals.conf` you can configure `xdg-desktop-portal` directives for `niri`; Default portal already set
+
+<br/>
+
+Thank you for choosing CachyOS!
