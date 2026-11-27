@@ -144,6 +144,7 @@ binds {
     Mod+Shift+F                         { fullscreen-window; }
     Mod+W                               { toggle-column-tabbed-display; }
     Mod+M                               { maximize-window-to-edges; }
+    Mod+O                               repeat=false { toggle-overview; }
 
     // ─── Screenshots ───
     CTRL+Shift+1                        { screenshot; }
@@ -158,5 +159,4 @@ binds {
     // ─── Exit / Power ───
     CTRL+ALT+Delete                     { quit; } // Also quits Niri
     Mod+Shift+P                         { power-off-monitors; } // Turn off screens (useful for OLED or privacy)
-    Mod+O                               repeat=false { toggle-overview; }
 }
